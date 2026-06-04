@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="760" viewBox="0 0 1200 760">
+  <defs>
+    <style>
+      .bg{fill:#020617}.grid{stroke:#1e293b;stroke-width:.6}.title{fill:#e2e8f0;font:700 26px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}.sub{fill:#94a3b8;font:14px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}.box{fill:#0f172a;stroke-width:2;rx:14}.label{fill:#f8fafc;font:700 16px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}.small{fill:#cbd5e1;font:13px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}.tiny{fill:#94a3b8;font:12px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}.arrow{stroke:#64748b;stroke-width:2.2;fill:none;marker-end:url(#arrow)}
+    </style>
+    <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse"><path d="M40 0H0V40" fill="none" class="grid"/></pattern>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="#64748b"/></marker>
+  </defs>
+  <rect width="1200" height="760" class="bg"/><rect width="1200" height="760" fill="url(#grid)" opacity=".8"/>
+  <text x="48" y="58" class="title">PromptPocket 앱 구조 hierarchy</text>
+  <text x="48" y="84" class="sub">macOS accessory app · Right ⌘ + L · focused prompt capture scratchpad</text>
+
+  <rect x="430" y="120" width="340" height="78" class="box" stroke="#22d3ee"/><text x="600" y="153" text-anchor="middle" class="label">PromptPocket.app</text><text x="600" y="178" text-anchor="middle" class="small">/Applications · stable local code signature</text>
+
+  <rect x="70" y="270" width="260" height="116" class="box" stroke="#34d399"/><text x="200" y="305" text-anchor="middle" class="label">AppDelegate</text><text x="200" y="330" text-anchor="middle" class="small">lifecycle / permission prompt</text><text x="200" y="354" text-anchor="middle" class="tiny">capture result → note + clipboard</text>
+  <rect x="370" y="270" width="260" height="116" class="box" stroke="#22d3ee"/><text x="500" y="305" text-anchor="middle" class="label">HotKeyMonitor</text><text x="500" y="330" text-anchor="middle" class="small">CGEventTap</text><text x="500" y="354" text-anchor="middle" class="tiny">Right ⌘ + L detection</text>
+  <rect x="670" y="270" width="260" height="116" class="box" stroke="#fbbf24"/><text x="800" y="305" text-anchor="middle" class="label">FocusedTextCaptureService</text><text x="800" y="330" text-anchor="middle" class="small">AX first, keyboard fallback second</text><text x="800" y="354" text-anchor="middle" class="tiny">Codex/Electron cut fallback</text>
+  <rect x="970" y="270" width="160" height="116" class="box" stroke="#a78bfa"/><text x="1050" y="305" text-anchor="middle" class="label">PromptPocketCore</text><text x="1050" y="330" text-anchor="middle" class="small">NoteBuffer</text><text x="1050" y="354" text-anchor="middle" class="tiny">policies + tests</text>
+
+  <rect x="130" y="500" width="300" height="120" class="box" stroke="#22d3ee"/><text x="280" y="535" text-anchor="middle" class="label">Floating Panel</text><text x="280" y="560" text-anchor="middle" class="small">NSPanel + NSTextView</text><text x="280" y="584" text-anchor="middle" class="tiny">always-on-top scratchpad</text>
+  <rect x="500" y="500" width="260" height="120" class="box" stroke="#fb7185"/><text x="630" y="535" text-anchor="middle" class="label">macOS TCC</text><text x="630" y="560" text-anchor="middle" class="small">Accessibility</text><text x="630" y="584" text-anchor="middle" class="tiny">Input Monitoring</text>
+  <rect x="830" y="500" width="300" height="120" class="box" stroke="#94a3b8"/><text x="980" y="535" text-anchor="middle" class="label">Target Apps</text><text x="980" y="560" text-anchor="middle" class="small">Codex · Safari · Notes · Mail</text><text x="980" y="584" text-anchor="middle" class="tiny">focused input / prompt field</text>
+
+  <path class="arrow" d="M600 198V250"/><path class="arrow" d="M430 328H330"/><path class="arrow" d="M630 328H670"/><path class="arrow" d="M930 328H970"/>
+  <path class="arrow" d="M200 386V500"/><path class="arrow" d="M800 386C800 440 660 440 630 500"/><path class="arrow" d="M800 386C840 440 940 440 980 500"/>
+  <text x="48" y="704" class="tiny">Source of truth: PromptPocket SwiftPM project · This diagram should stay lightweight and updated when core app flow changes.</text>
+</svg>

@@ -1,0 +1,24 @@
+# SwiftPM
+.build/
+.swiftpm/
+Package.resolved
+
+# Build artifacts
+build/
+*.app
+*.dmg
+*.dSYM
+
+# macOS / Xcode local state
+.DS_Store
+*.xcuserstate
+xcuserdata/
+DerivedData/
+
+# Local signing material / secrets
+*.keychain
+*.keychain-db
+*.p12
+*.pem
+.env
+.env.*

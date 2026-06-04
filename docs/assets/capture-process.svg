@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="760" viewBox="0 0 1200 760">
+  <defs>
+    <style>
+      .bg{fill:#020617}.grid{stroke:#1e293b;stroke-width:.6}.title{fill:#e2e8f0;font:700 26px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}.sub{fill:#94a3b8;font:14px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}.box{fill:#0f172a;stroke-width:2;rx:14}.label{fill:#f8fafc;font:700 15px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}.small{fill:#cbd5e1;font:13px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}.tiny{fill:#94a3b8;font:12px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}.arrow{stroke:#64748b;stroke-width:2.2;fill:none;marker-end:url(#arrow)}.ok{stroke:#34d399}.warn{stroke:#fbbf24}.ext{stroke:#94a3b8}.accent{stroke:#22d3ee}.rose{stroke:#fb7185}
+    </style>
+    <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse"><path d="M40 0H0V40" fill="none" class="grid"/></pattern>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="#64748b"/></marker>
+  </defs>
+  <rect width="1200" height="760" class="bg"/><rect width="1200" height="760" fill="url(#grid)" opacity=".8"/>
+  <text x="48" y="58" class="title">핵심 기능 작동 프로세스</text>
+  <text x="48" y="84" class="sub">목표: Codex prompt 창 포함, 기존 앱 회귀 없이 텍스트를 빼고 클립보드에도 남김</text>
+
+  <rect x="70" y="140" width="210" height="86" class="box accent"/><text x="175" y="174" text-anchor="middle" class="label">1. 사용자 입력창 포커스</text><text x="175" y="198" text-anchor="middle" class="small">Codex / Safari / Notes / Mail</text>
+  <rect x="335" y="140" width="190" height="86" class="box accent"/><text x="430" y="174" text-anchor="middle" class="label">2. Right ⌘ + L</text><text x="430" y="198" text-anchor="middle" class="small">HotKeyMonitor intercept</text>
+  <rect x="580" y="140" width="220" height="86" class="box warn"/><text x="690" y="174" text-anchor="middle" class="label">3. AX capture 시도</text><text x="690" y="198" text-anchor="middle" class="small">AXValue read → AXValue clear</text>
+  <rect x="855" y="140" width="230" height="86" class="box ok"/><text x="970" y="174" text-anchor="middle" class="label">성공 경로</text><text x="970" y="198" text-anchor="middle" class="small">note append + clipboard set</text>
+
+  <rect x="235" y="340" width="260" height="96" class="box warn"/><text x="365" y="374" text-anchor="middle" class="label">4A. Codex/Electron fallback</text><text x="365" y="398" text-anchor="middle" class="small">Cmd+A → Cmd+X</text><text x="365" y="420" text-anchor="middle" class="tiny">copy와 clear를 한 번에 처리</text>
+  <rect x="565" y="340" width="260" height="96" class="box ext"/><text x="695" y="374" text-anchor="middle" class="label">4B. Compatibility fallback</text><text x="695" y="398" text-anchor="middle" class="small">Cmd+A → Cmd+C → Delete</text><text x="695" y="420" text-anchor="middle" class="tiny">Cut 미지원 앱 보존</text>
+  <rect x="895" y="340" width="220" height="96" class="box rose"/><text x="1005" y="374" text-anchor="middle" class="label">실패/빈 입력</text><text x="1005" y="398" text-anchor="middle" class="small">상태 메시지 표시</text><text x="1005" y="420" text-anchor="middle" class="tiny">권한/포커스 안내</text>
+
+  <rect x="260" y="560" width="230" height="96" class="box ok"/><text x="375" y="594" text-anchor="middle" class="label">5. PromptPocket 패널</text><text x="375" y="618" text-anchor="middle" class="small">NoteBuffer에 누적</text><text x="375" y="640" text-anchor="middle" class="tiny">항상 위 scratchpad</text>
+  <rect x="610" y="560" width="250" height="96" class="box ok"/><text x="735" y="594" text-anchor="middle" class="label">6. Clipboard</text><text x="735" y="618" text-anchor="middle" class="small">캡처 텍스트를 최종값으로 설정</text><text x="735" y="640" text-anchor="middle" class="tiny">Cmd+V로 바로 복원 가능</text>
+
+  <path class="arrow" d="M280 183H335"/><path class="arrow" d="M525 183H580"/><path class="arrow" d="M800 183H855"/>
+  <path class="arrow" d="M690 226C690 285 365 285 365 340"/><path class="arrow" d="M495 388H565"/><path class="arrow" d="M825 388H895"/>
+  <path class="arrow" d="M970 226C970 500 770 500 735 560"/><path class="arrow" d="M970 226C970 500 420 500 375 560"/>
+  <path class="arrow" d="M365 436C365 505 375 505 375 560"/><path class="arrow" d="M365 436C365 505 735 505 735 560"/>
+  <path class="arrow" d="M695 436C695 505 735 505 735 560"/><path class="arrow" d="M695 436C695 505 375 505 375 560"/>
+  <text x="48" y="714" class="tiny">중요 변경: 예전처럼 이전 클립보드를 복원하지 않음. 캡처 성공 시 캡처 텍스트가 클립보드에 남는다.</text>
+</svg>
