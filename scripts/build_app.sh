@@ -95,8 +95,28 @@ if [[ -z "${PROMPTPOCKET_SIGN_IDENTITY:-}" || "${PROMPTPOCKET_CREATE_LOCAL_SIGNI
     "$PROJECT_DIR/scripts/ensure_local_signing_identity.sh"
 fi
 
+SIGN_VALUE="$SIGN_IDENTITY"
+if [[ -n "${PROMPTPOCKET_SIGN_KEYCHAIN:-}" ]]; then
+    SIGN_HASH="$(python3 - "$PROMPTPOCKET_SIGN_KEYCHAIN" "$SIGN_IDENTITY" <<'PY'
+import re
+import subprocess
+import sys
+keychain, identity = sys.argv[1], sys.argv[2]
+out = subprocess.check_output(['security', 'find-certificate', '-c', identity, '-Z', keychain], text=True, stderr=subprocess.DEVNULL)
+match = re.search(r'SHA-1 hash:\s*([A-Fa-f0-9]+)', out)
+if match:
+    print(match.group(1))
+PY
+)"
+    if [[ -z "$SIGN_HASH" ]]; then
+        echo "Missing signing identity in keychain: $SIGN_IDENTITY ($PROMPTPOCKET_SIGN_KEYCHAIN)" >&2
+        exit 1
+    fi
+    SIGN_VALUE="$SIGN_HASH"
+fi
+
 xattr -cr "$APP_DIR"
-CODESIGN_ARGS=(--force --deep --sign "$SIGN_IDENTITY")
+CODESIGN_ARGS=(--force --deep --sign "$SIGN_VALUE")
 if [[ -n "${PROMPTPOCKET_SIGN_KEYCHAIN:-}" ]]; then
     CODESIGN_ARGS+=(--keychain "$PROMPTPOCKET_SIGN_KEYCHAIN")
 fi

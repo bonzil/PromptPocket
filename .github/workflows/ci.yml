@@ -13,6 +13,8 @@ jobs:
   build:
     name: Build and verify
     runs-on: macos-latest
+    env:
+      PROMPTPOCKET_SIGN_KEYCHAIN: ${{ runner.temp }}/PromptPocketLocalSigning.keychain-db
 
     steps:
       - name: Check out repository
