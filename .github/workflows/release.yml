@@ -1,0 +1,44 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    name: Build and publish DMG
+    runs-on: macos-latest
+    env:
+      PROMPTPOCKET_SIGN_IDENTITY: "-"
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Show Swift version
+        run: swift --version
+
+      - name: Run behavior tests
+        run: swift run --disable-sandbox --scratch-path .build PromptPocketCoreBehaviorTests
+
+      - name: Build and verify DMG
+        run: |
+          ./scripts/build_dmg.sh
+          hdiutil verify build/PromptPocket.dmg
+          shasum -a 256 build/PromptPocket.dmg > build/PromptPocket.dmg.sha256
+
+      - name: Publish GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "$GITHUB_REF_NAME" \
+            build/PromptPocket.dmg \
+            build/PromptPocket.dmg.sha256 \
+            --repo "$GITHUB_REPOSITORY" \
+            --title "PromptPocket $GITHUB_REF_NAME" \
+            --generate-notes \
+            --verify-tag

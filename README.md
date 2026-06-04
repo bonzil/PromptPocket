@@ -58,31 +58,41 @@ build/PromptPocket.app
 build/PromptPocket.dmg
 ```
 
-### Local signing
+### Signing
 
-The build script creates or reuses a local code-signing identity named `PromptPocket Local Code Signing`. This keeps the app identity stable for macOS Accessibility/Input Monitoring permissions during local rebuilds.
+By default, local and GitHub Actions builds use ad-hoc signing. This avoids
+Keychain setup and is enough for building and packaging the app without an Apple
+Developer ID certificate.
 
-By default, the helper imports the local identity into your default user keychains. If you want to isolate it in a dedicated keychain, pass `PROMPTPOCKET_SIGN_KEYCHAIN`:
+Public builds are not notarized, so macOS may still show an unidentified
+developer warning on first launch.
 
-```sh
-PROMPTPOCKET_SIGN_KEYCHAIN="$HOME/Library/Keychains/PromptPocketLocalSigning.keychain-db" ./scripts/build_app.sh
-```
-
-The script does **not** store signing secrets in the repository. Temporary private key material is created in a temporary directory and removed after import.
-
-If you do not want to use the helper, set your own signing identity. In that case the helper is skipped and the identity must already exist in your keychain:
+If you want a stable signing identity for repeated local rebuilds, set your own
+signing identity. The identity must already exist in your keychain:
 
 ```sh
 PROMPTPOCKET_SIGN_IDENTITY="Developer ID Application: Your Name" ./scripts/build_app.sh
 ```
 
-If you intentionally want the helper to create a local self-signed identity with a custom name, opt in explicitly:
+If you want the helper to create a local self-signed identity, opt in
+explicitly:
 
 ```sh
-PROMPTPOCKET_SIGN_IDENTITY="PromptPocket Dev Signing" \
+PROMPTPOCKET_SIGN_IDENTITY="PromptPocket Local Code Signing" \
 PROMPTPOCKET_CREATE_LOCAL_SIGNING_IDENTITY=1 \
+PROMPTPOCKET_SIGN_KEYCHAIN="$HOME/Library/Keychains/PromptPocketLocalSigning.keychain-db" \
 ./scripts/build_app.sh
 ```
+
+The script does **not** store signing secrets in the repository. Temporary
+private key material is created in a temporary directory and removed after
+import.
+
+## GitHub Releases
+
+Pushing a version tag such as `v1.0.3` runs the release workflow, builds
+`PromptPocket.dmg`, verifies it, writes a SHA256 checksum, and publishes both
+files to GitHub Releases.
 
 ## Fix duplicate permission rows
 

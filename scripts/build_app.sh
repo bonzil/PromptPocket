@@ -69,9 +69,9 @@ cat > "$CONTENTS_DIR/Info.plist" <<PLIST
     <key>CFBundlePackageType</key>
     <string>APPL</string>
     <key>CFBundleShortVersionString</key>
-    <string>1.0.2</string>
+    <string>1.0.3</string>
     <key>CFBundleVersion</key>
-    <string>3</string>
+    <string>4</string>
     <key>LSMinimumSystemVersion</key>
     <string>13.0</string>
     <key>LSUIElement</key>
@@ -90,13 +90,13 @@ PLIST
 
 plutil -lint "$CONTENTS_DIR/Info.plist"
 
-SIGN_IDENTITY="${PROMPTPOCKET_SIGN_IDENTITY:-PromptPocket Local Code Signing}"
-if [[ -z "${PROMPTPOCKET_SIGN_IDENTITY:-}" || "${PROMPTPOCKET_CREATE_LOCAL_SIGNING_IDENTITY:-0}" == "1" ]]; then
+SIGN_IDENTITY="${PROMPTPOCKET_SIGN_IDENTITY:--}"
+if [[ "$SIGN_IDENTITY" != "-" && "${PROMPTPOCKET_CREATE_LOCAL_SIGNING_IDENTITY:-0}" == "1" ]]; then
     "$PROJECT_DIR/scripts/ensure_local_signing_identity.sh"
 fi
 
 SIGN_VALUE="$SIGN_IDENTITY"
-if [[ -n "${PROMPTPOCKET_SIGN_KEYCHAIN:-}" ]]; then
+if [[ "$SIGN_IDENTITY" != "-" && -n "${PROMPTPOCKET_SIGN_KEYCHAIN:-}" ]]; then
     SIGN_HASH="$(python3 - "$PROMPTPOCKET_SIGN_KEYCHAIN" "$SIGN_IDENTITY" <<'PY'
 import re
 import subprocess
@@ -117,7 +117,7 @@ fi
 
 xattr -cr "$APP_DIR"
 CODESIGN_ARGS=(--force --deep --sign "$SIGN_VALUE")
-if [[ -n "${PROMPTPOCKET_SIGN_KEYCHAIN:-}" ]]; then
+if [[ "$SIGN_IDENTITY" != "-" && -n "${PROMPTPOCKET_SIGN_KEYCHAIN:-}" ]]; then
     CODESIGN_ARGS+=(--keychain "$PROMPTPOCKET_SIGN_KEYCHAIN")
 fi
 codesign "${CODESIGN_ARGS[@]}" "$APP_DIR"
