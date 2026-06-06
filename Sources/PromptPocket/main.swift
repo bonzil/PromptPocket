@@ -253,9 +253,10 @@ final class PromptPocketPanelController: NSObject, NSTextViewDelegate, NSWindowD
         textView.isAutomaticDashSubstitutionEnabled = false
         textView.font = .monospacedSystemFont(ofSize: 14, weight: .regular)
         textView.textColor = .labelColor
-        textView.drawsBackground = true
-        textView.backgroundColor = NSColor.textBackgroundColor.withAlphaComponent(0.88)
-        textView.textContainerInset = NSSize(width: 12, height: 12)
+        textView.typingAttributes = textAttributes()
+        textView.drawsBackground = false
+        textView.backgroundColor = .clear
+        textView.textContainerInset = NSSize(width: 14, height: 14)
         textView.isVerticallyResizable = true
         textView.isHorizontallyResizable = false
         textView.autoresizingMask = [.width]
@@ -271,15 +272,20 @@ final class PromptPocketPanelController: NSObject, NSTextViewDelegate, NSWindowD
         scrollView.hasHorizontalScroller = false
         scrollView.borderType = .noBorder
         scrollView.drawsBackground = false
+        scrollView.contentView.drawsBackground = false
         scrollView.documentView = textView
         textView.frame = scrollView.contentView.bounds
         textView.textContainer?.containerSize = NSSize(width: scrollView.contentSize.width, height: CGFloat.greatestFiniteMagnitude)
+
+        let notePaperView = NotePaperView()
+        notePaperView.translatesAutoresizingMaskIntoConstraints = false
+        notePaperView.addSubview(scrollView)
 
         root.addSubview(titleLabel)
         root.addSubview(statusLabel)
         root.addSubview(clearButton)
         root.addSubview(quitButton)
-        root.addSubview(scrollView)
+        root.addSubview(notePaperView)
         panel.contentView = root
 
         NSLayoutConstraint.activate([
@@ -296,11 +302,186 @@ final class PromptPocketPanelController: NSObject, NSTextViewDelegate, NSWindowD
             statusLabel.trailingAnchor.constraint(lessThanOrEqualTo: clearButton.leadingAnchor, constant: -12),
             statusLabel.centerYAnchor.constraint(equalTo: titleLabel.centerYAnchor),
 
-            scrollView.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 12),
-            scrollView.leadingAnchor.constraint(equalTo: root.leadingAnchor, constant: 14),
-            scrollView.trailingAnchor.constraint(equalTo: root.trailingAnchor, constant: -14),
-            scrollView.bottomAnchor.constraint(equalTo: root.bottomAnchor, constant: -14)
+            notePaperView.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 12),
+            notePaperView.leadingAnchor.constraint(equalTo: root.leadingAnchor, constant: 14),
+            notePaperView.trailingAnchor.constraint(equalTo: root.trailingAnchor, constant: -14),
+            notePaperView.bottomAnchor.constraint(equalTo: root.bottomAnchor, constant: -14),
+
+            scrollView.topAnchor.constraint(equalTo: notePaperView.topAnchor),
+            scrollView.leadingAnchor.constraint(equalTo: notePaperView.leadingAnchor),
+            scrollView.trailingAnchor.constraint(equalTo: notePaperView.trailingAnchor),
+            scrollView.bottomAnchor.constraint(equalTo: notePaperView.bottomAnchor)
         ])
+    }
+}
+
+private final class NotePaperView: NSView {
+    private static let cornerRadius: CGFloat = 14
+    private static var textureCache: [NotePaperAppearance: NSImage] = [:]
+
+    override init(frame frameRect: NSRect) {
+        super.init(frame: frameRect)
+        configureLayer()
+    }
+
+    required init?(coder: NSCoder) {
+        super.init(coder: coder)
+        configureLayer()
+    }
+
+    override func draw(_ dirtyRect: NSRect) {
+        let palette = NotePaperPalette(appearance: notePaperAppearance)
+        layer?.borderColor = palette.border.cgColor
+
+        NSGraphicsContext.saveGraphicsState()
+        NSColor(patternImage: Self.texture(for: notePaperAppearance, palette: palette)).setFill()
+        bounds.fill()
+        palette.surfaceWash.setFill()
+        bounds.fill(using: .sourceAtop)
+        NSGraphicsContext.restoreGraphicsState()
+    }
+
+    override func viewDidChangeEffectiveAppearance() {
+        super.viewDidChangeEffectiveAppearance()
+        needsDisplay = true
+    }
+
+    private var notePaperAppearance: NotePaperAppearance {
+        effectiveAppearance.bestMatch(from: [.darkAqua, .aqua]) == .darkAqua ? .dark : .light
+    }
+
+    private func configureLayer() {
+        wantsLayer = true
+        layer?.cornerRadius = Self.cornerRadius
+        layer?.masksToBounds = true
+        layer?.borderWidth = 1
+        layer?.contentsScale = NSScreen.main?.backingScaleFactor ?? 2
+        if #available(macOS 10.15, *) {
+            layer?.cornerCurve = .continuous
+        }
+    }
+
+    private static func texture(for appearance: NotePaperAppearance, palette: NotePaperPalette) -> NSImage {
+        if let cached = textureCache[appearance] {
+            return cached
+        }
+
+        let size = 96
+        let image = NSImage(size: NSSize(width: size, height: size))
+        image.lockFocus()
+
+        guard let context = NSGraphicsContext.current?.cgContext else {
+            image.unlockFocus()
+            return image
+        }
+
+        for y in 0..<size {
+            for x in 0..<size {
+                let grain = deterministicNoise(x: x, y: y, seed: 31) - 0.5
+                let fiber = deterministicNoise(x: x / 3, y: y, seed: 83) - 0.5
+                let crossFiber = deterministicNoise(x: x, y: y / 7, seed: 151) - 0.5
+                let variation = grain * palette.grainStrength
+                    + fiber * palette.fiberStrength
+                    + crossFiber * palette.crossFiberStrength
+
+                var color = palette.base.adjusted(by: variation)
+                if y % 18 == 0 || y % 18 == 1 {
+                    color = color.blended(with: palette.ruleLine, amount: palette.ruleLineAmount)
+                }
+                if deterministicNoise(x: x, y: y, seed: 229) > 0.985 {
+                    color = color.blended(with: palette.speck, amount: palette.speckAmount)
+                }
+
+                context.setFillColor(color.cgColor)
+                context.fill(CGRect(x: x, y: y, width: 1, height: 1))
+            }
+        }
+
+        image.unlockFocus()
+        image.isTemplate = false
+        textureCache[appearance] = image
+        return image
+    }
+
+    private static func deterministicNoise(x: Int, y: Int, seed: UInt32) -> CGFloat {
+        var value = UInt32(x) &* 374_761_393
+        value = value &+ UInt32(y) &* 668_265_263
+        value = value &+ seed &* 2_246_822_519
+        value = (value ^ (value >> 13)) &* 1_274_126_177
+        value = value ^ (value >> 16)
+        return CGFloat(value & 0xffff) / CGFloat(UInt16.max)
+    }
+}
+
+private enum NotePaperAppearance: Hashable {
+    case light
+    case dark
+}
+
+private struct NotePaperPalette {
+    let base: NSColor
+    let surfaceWash: NSColor
+    let border: NSColor
+    let ruleLine: NSColor
+    let speck: NSColor
+    let grainStrength: CGFloat
+    let fiberStrength: CGFloat
+    let crossFiberStrength: CGFloat
+    let ruleLineAmount: CGFloat
+    let speckAmount: CGFloat
+
+    init(appearance: NotePaperAppearance) {
+        switch appearance {
+        case .light:
+            base = NSColor(deviceRed: 0.965, green: 0.936, blue: 0.824, alpha: 1)
+            surfaceWash = NSColor(deviceRed: 1.0, green: 0.965, blue: 0.83, alpha: 0.16)
+            border = NSColor(deviceRed: 0.52, green: 0.42, blue: 0.24, alpha: 0.28)
+            ruleLine = NSColor(deviceRed: 0.72, green: 0.52, blue: 0.28, alpha: 1)
+            speck = NSColor(deviceRed: 0.48, green: 0.35, blue: 0.18, alpha: 1)
+            grainStrength = 0.026
+            fiberStrength = 0.020
+            crossFiberStrength = 0.010
+            ruleLineAmount = 0.035
+            speckAmount = 0.11
+        case .dark:
+            base = NSColor(deviceRed: 0.145, green: 0.129, blue: 0.095, alpha: 1)
+            surfaceWash = NSColor(deviceRed: 0.22, green: 0.18, blue: 0.12, alpha: 0.20)
+            border = NSColor(deviceRed: 0.72, green: 0.58, blue: 0.36, alpha: 0.20)
+            ruleLine = NSColor(deviceRed: 0.46, green: 0.35, blue: 0.20, alpha: 1)
+            speck = NSColor(deviceRed: 0.72, green: 0.58, blue: 0.34, alpha: 1)
+            grainStrength = 0.018
+            fiberStrength = 0.016
+            crossFiberStrength = 0.008
+            ruleLineAmount = 0.045
+            speckAmount = 0.09
+        }
+    }
+}
+
+private extension NSColor {
+    func adjusted(by delta: CGFloat) -> NSColor {
+        let color = usingColorSpace(.deviceRGB) ?? self
+        return NSColor(
+            deviceRed: clamp(color.redComponent + delta),
+            green: clamp(color.greenComponent + delta * 0.92),
+            blue: clamp(color.blueComponent + delta * 0.72),
+            alpha: color.alphaComponent
+        )
+    }
+
+    func blended(with overlay: NSColor, amount: CGFloat) -> NSColor {
+        let base = usingColorSpace(.deviceRGB) ?? self
+        let top = overlay.usingColorSpace(.deviceRGB) ?? overlay
+        return NSColor(
+            deviceRed: base.redComponent * (1 - amount) + top.redComponent * amount,
+            green: base.greenComponent * (1 - amount) + top.greenComponent * amount,
+            blue: base.blueComponent * (1 - amount) + top.blueComponent * amount,
+            alpha: base.alphaComponent
+        )
+    }
+
+    private func clamp(_ value: CGFloat) -> CGFloat {
+        min(max(value, 0), 1)
     }
 }
 
