@@ -290,7 +290,7 @@ final class PromptPocketPanelController: NSObject, NSTextViewDelegate, NSWindowD
 
         NSLayoutConstraint.activate([
             titleLabel.topAnchor.constraint(equalTo: root.topAnchor, constant: 14),
-            titleLabel.leadingAnchor.constraint(equalTo: root.leadingAnchor, constant: 16),
+            titleLabel.leadingAnchor.constraint(equalTo: root.leadingAnchor, constant: 86),
 
             quitButton.centerYAnchor.constraint(equalTo: titleLabel.centerYAnchor),
             quitButton.trailingAnchor.constraint(equalTo: root.trailingAnchor, constant: -14),
